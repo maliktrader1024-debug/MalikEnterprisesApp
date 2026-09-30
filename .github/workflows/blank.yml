@@ -1,4 +1,4 @@
-  name: Build Malik Enterprises APK
+ name: Build Malik Enterprises APK
 
 on:
   workflow_dispatch:
