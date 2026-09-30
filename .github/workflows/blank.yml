@@ -1,4 +1,4 @@
-name: Build Malik Enterprises APK
+  name: Build Malik Enterprises APK
 
 on:
   workflow_dispatch:
@@ -17,26 +17,49 @@ jobs:
           distribution: temurin
           java-version: '17'
 
+      - name: Show repository files
+        run: |
+          echo "=== Repository ==="
+          find . -maxdepth 3 -type f | sort | head -200
+
+      - name: Find ZIP file
+        run: |
+          echo "=== ZIP files ==="
+          find . -type f -iname "*.zip" -print
+
       - name: Extract Android project
         run: |
-          mkdir project
-          unzip -q *.zip -d project
+          ZIP=$(find . -type f -iname "*.zip" | head -1)
+
+          if [ -z "$ZIP" ]; then
+            echo "ERROR: No ZIP file found"
+            exit 1
+          fi
+
+          echo "Using ZIP: $ZIP"
+          mkdir -p project
+          unzip -q "$ZIP" -d project
 
       - name: Find Gradle wrapper
         run: |
+          echo "=== Extracted files ==="
+          find project -maxdepth 5 -type f | sort | head -300
+
           GRADLEW=$(find project -name gradlew -type f | head -1)
+
           if [ -z "$GRADLEW" ]; then
-            echo "gradlew not found"
-            find project -maxdepth 3 -type f | head -100
+            echo "ERROR: gradlew not found"
             exit 1
           fi
+
           chmod +x "$GRADLEW"
+
           echo "GRADLEW=$GRADLEW" >> $GITHUB_ENV
           echo "PROJECT_DIR=$(dirname "$GRADLEW")" >> $GITHUB_ENV
 
       - name: Build APK
         working-directory: ${{ env.PROJECT_DIR }}
-        run: ./gradlew assembleDebug
+        run: ./gradlew assembleDebug --stacktrace
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
