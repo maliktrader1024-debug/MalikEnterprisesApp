@@ -21,10 +21,11 @@ jobs:
         run: |
           mkdir project
           unzip -q *.zip -d project
-
-      - name: Find Gradle wrapper
+      -name: Build APK
         run: |
-          GRADLEW=$(find project -name gradlew -type f | head -1)
+          cd project
+          gradle assembleDebug
+      
           if [ -z "$GRADLEW" ]; then
             echo "gradlew not found"
             find project -maxdepth 3 -type f | head -100
