@@ -1,34 +1,4 @@
-name: Build Malik Enterprises APK
-
-on:
-  workflow_dispatch:
-
-jobs:
-  build:
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Set up Java
-        uses: actions/setup-java@v4
-        with:
-          distribution: temurin
-          java-version: '17'
-
-      - name: Find ZIP file
-        run: |
-          ZIP=$(find . -maxdepth 2 -type f -iname "*.zip" | head -1)
-          if [ -z "$ZIP" ]; then
-            echo "ERROR: No Android project ZIP found in repository root."
-            exit 1
-          fi
-          echo "Using ZIP: $ZIP"
-          mkdir -p project
-          unzip -q "$ZIP" -d project
-
-      - name: Find Gradle wrapper
+ - name: Find Gradle wrapper
         run: |
           GRADLEW=$(find project -type f -name gradlew | head -1)
           if [ -z "$GRADLEW" ]; then
@@ -38,15 +8,3 @@ jobs:
           fi
           chmod +x "$GRADLEW"
           echo "PROJECT_DIR=$(dirname "$GRADLEW")" >> "$GITHUB_ENV"
-
-      - name: Build APK
-        run: ./gradlew assembleDebug
-        working-directory: ${{ env.PROJECT_DIR }}
-
-      - name: Upload APK
-        if: success()
-        uses: actions/upload-artifact@v4
-        with:
-          name: Malik-Enterprises-APK
-          path: ${{ env.PROJECT_DIR }}/**/build/outputs/apk/**/*.apk
-          if-no-files-found: error
