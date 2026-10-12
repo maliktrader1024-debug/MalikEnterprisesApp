@@ -1,61 +1,13 @@
- name: Build Malik Enterprises APK
-
-on:
-  workflow_dispatch:
-
-jobs:
-  build:
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Set up Java
-        uses: actions/setup-java@v4
-        with:
-          distribution: temurin
-          java-version: '17'
-
-      - name: Show repository files
+ - name: Find Gradle wrapper
         run: |
-          echo "=== Repository ==="
-          find . -maxdepth 3 -type f | sort | head -200
-
-      - name: Find ZIP file
-        run: |
-          echo "=== ZIP files ==="
-          find . -type f -iname "*.zip" -print
-
-      - name: Extract Android project
-        run: |
-          ZIP=$(find . -type f -iname "*.zip" | head -1)
-
-          if [ -z "$ZIP" ]; then
-            echo "ERROR: No ZIP file found"
-            exit 1
-          fi
-
-          echo "Using ZIP: $ZIP"
-          mkdir -p project
-          unzip -q "$ZIP" -d project
-
-      - name: Find Gradle wrapper
-        run: |
-          echo "=== Extracted files ==="
-          find project -maxdepth 5 -type f | sort | head -300
-
-          GRADLEW=$(find project -name gradlew -type f | head -1)
-
+          GRADLEW=$(find project -type f -name gradlew | head -1)
           if [ -z "$GRADLEW" ]; then
-            echo "ERROR: gradlew not found"
+            echo "ERROR: gradlew not found in ZIP."
+            find project -maxdepth 4 -type f | head -100
             exit 1
           fi
-
           chmod +x "$GRADLEW"
-
-          echo "GRADLEW=$GRADLEW" >> $GITHUB_ENV
-          echo "PROJECT_DIR=$(dirname "$GRADLEW")" >> $GITHUB_ENV
+          echo "PROJECT_DIR=$(dirname "$GRADLEW")" >> "$GITHUB_ENV"
 
       - name: Build APK
         working-directory: ${{ env.PROJECT_DIR }}
@@ -65,4 +17,5 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: Malik-Enterprises-APK
-          path: ${{ env.PROJECT_DIR }}/**/build/outputs/apk/**/*.apk
+          path: project/**/build/outputs/apk/**/*.apk
+          if-no-files-found: errorV
