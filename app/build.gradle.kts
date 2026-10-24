@@ -19,6 +19,7 @@ buildTypes {
     release {
         isMinifyEnabled = false
     }
+
     debug {
         isDebuggable = true
     }
